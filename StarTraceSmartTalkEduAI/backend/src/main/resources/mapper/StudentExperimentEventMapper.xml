@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.StudentExperimentEventMapper">
+
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.StudentExperimentEvent">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="attempt_id" property="attemptId" jdbcType="BIGINT"/>
+        <result column="event_type" property="eventType" jdbcType="VARCHAR"/>
+        <result column="event_at" property="eventAt" jdbcType="TIMESTAMP"/>
+        <result column="seq" property="seq" jdbcType="INTEGER"/>
+        <result column="payload_json" property="payloadJson" jdbcType="LONGVARCHAR"/>
+        <result column="payload_text" property="payloadText" jdbcType="LONGVARCHAR"/>
+        <result column="token_used" property="tokenUsed" jdbcType="BIGINT"/>
+        <result column="latency_ms" property="latencyMs" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, attempt_id, event_type, event_at, seq,
+        payload_json, payload_text, token_used, latency_ms, created_at
+    </sql>
+
+    <insert id="insert" parameterType="com.eduai.pojo.entity.StudentExperimentEvent"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student_experiment_events (
+            attempt_id, event_type, event_at, seq,
+            payload_json, payload_text, token_used, latency_ms, created_at
+        ) VALUES (
+            #{attemptId}, #{eventType}, #{eventAt}, #{seq},
+            #{payloadJson}, #{payloadText}, #{tokenUsed}, #{latencyMs}, #{createdAt}
+        )
+    </insert>
+
+    <select id="selectByAttemptId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM student_experiment_events
+        WHERE attempt_id = #{attemptId}
+        ORDER BY event_at ASC, id ASC
+    </select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

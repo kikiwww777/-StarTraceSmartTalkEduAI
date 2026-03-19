@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  db:
+    image: mysql:8.0
+    container_name: eduai-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: eduai
+      MYSQL_USER: eduai
+      MYSQL_PASSWORD: eduai123
+    ports:
+      - "3306:3306"
+    volumes:
+      - eduai-db-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存 (可选)
+  redis:
+    image: redis:7-alpine
+    container_name: eduai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - eduai-redis-data:/data
+
+volumes:
+  eduai-db-data:
+  eduai-redis-data:

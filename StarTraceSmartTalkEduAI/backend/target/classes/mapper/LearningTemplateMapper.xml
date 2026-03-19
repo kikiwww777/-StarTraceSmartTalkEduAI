@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.LearningTemplateMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.LearningTemplate">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="template_name" property="templateName" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="json_content" property="jsonContent" jdbcType="VARCHAR"/>
+        <result column="teacher_id" property="teacherId" jdbcType="BIGINT"/>
+        <result column="course_id" property="courseId" jdbcType="BIGINT"/>
+        <result column="class_id" property="classId" jdbcType="BIGINT"/>
+        <result column="download_count" property="downloadCount" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, template_name, description, image_url, json_content, teacher_id, course_id, 
+        class_id, download_count, status, created_at, updated_at
+    </sql>
+    
+    <!-- 根据ID查询模板 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据教师ID查询模板列表 -->
+    <select id="selectByTeacherId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        WHERE teacher_id = #{teacherId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据课程ID查询模板列表 -->
+    <select id="selectByCourseId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        WHERE course_id = #{courseId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据班级ID查询模板列表 -->
+    <select id="selectByClassId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        WHERE class_id = #{classId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据教师ID和课程ID查询模板列表 -->
+    <select id="selectByTeacherIdAndCourseId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        WHERE teacher_id = #{teacherId} AND course_id = #{courseId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 查询所有模板 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM learning_templates
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 插入新模板 -->
+    <insert id="insert" parameterType="com.eduai.pojo.entity.LearningTemplate" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO learning_templates (
+            template_name, description, image_url, json_content, teacher_id, course_id, 
+            class_id, download_count, status, created_at, updated_at
+        ) VALUES (
+            #{templateName}, #{description}, #{imageUrl}, #{jsonContent}, #{teacherId}, #{courseId},
+            #{classId}, #{downloadCount}, #{status}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 更新模板信息 -->
+    <update id="update" parameterType="com.eduai.pojo.entity.LearningTemplate">
+        UPDATE learning_templates
+        <set>
+            <if test="templateName != null">template_name = #{templateName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="jsonContent != null">json_content = #{jsonContent},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="classId != null">class_id = #{classId},</if>
+            <if test="downloadCount != null">download_count = #{downloadCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除模板 -->
+    <delete id="deleteById">
+        DELETE FROM learning_templates
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 增加下载量 -->
+    <update id="incrementDownloadCount">
+        UPDATE learning_templates
+        SET download_count = download_count + 1
+        WHERE id = #{id}
+    </update>
+    
+</mapper>
+

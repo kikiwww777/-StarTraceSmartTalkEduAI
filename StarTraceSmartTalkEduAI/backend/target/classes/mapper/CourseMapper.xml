@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.CourseMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.Course">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="course_code" property="courseCode" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="credit" property="credit" jdbcType="INTEGER"/>
+        <result column="total_hours" property="totalHours" jdbcType="INTEGER"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, course_code, name, description, credit, total_hours, created_at, updated_at
+    </sql>
+    
+    <!-- 根据ID查询课程 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM courses
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据课程代码查询课程 -->
+    <select id="selectByCourseCode" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM courses
+        WHERE course_code = #{courseCode}
+    </select>
+    
+    <!-- 查询所有课程 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM courses
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 根据名称搜索课程 -->
+    <select id="searchByName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM courses
+        WHERE name LIKE CONCAT('%', #{name}, '%')
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 插入新课程 -->
+    <insert id="insert" parameterType="com.eduai.pojo.entity.Course" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO courses (
+            course_code, name, description, credit, total_hours, created_at, updated_at
+        ) VALUES (
+            #{courseCode}, #{name}, #{description}, #{credit}, #{totalHours}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 更新课程信息 -->
+    <update id="update" parameterType="com.eduai.pojo.entity.Course">
+        UPDATE courses
+        <set>
+            <if test="courseCode != null">course_code = #{courseCode},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="totalHours != null">total_hours = #{totalHours},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除课程 -->
+    <delete id="deleteById">
+        DELETE FROM courses
+        WHERE id = #{id}
+    </delete>
+    
+</mapper>
+
+
+

@@ -1,0 +1,11 @@
+启动 Docker Desktop
+打开 Docker Desktop 并等待其完全启动（系统托盘图标不再显示启动动画）
+运行 Sim Studio
+启动后，在项目目录运行：
+   cd "D:\code\StarTraceSmartTalkEduAI\StarTraceSmartTalkEduAI\sim"
+   docker compose -f docker-compose.prod.yml up -d
+
+访问应用
+启动完成后，访问：http://localhost:3000
+停止服务
+   docker compose -f docker-compose.prod.yml down

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.SimWebhookLogMapper">
+
+    <insert id="insert" parameterType="com.eduai.pojo.entity.SimWebhookLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sim_webhook_logs (
+            execution_id, workflow_id, workspace_id,
+            status, duration_ms, cost_usd,
+            request_body, signature, signature_valid, processed, error_message,
+            created_at, updated_at
+        ) VALUES (
+            #{executionId}, #{workflowId}, #{workspaceId},
+            #{status}, #{durationMs}, #{costUsd},
+            #{requestBody}, #{signature}, #{signatureValid}, #{processed}, #{errorMessage},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateProcessed" parameterType="com.eduai.pojo.entity.SimWebhookLog">
+        UPDATE sim_webhook_logs
+        SET
+            signature_valid = #{signatureValid},
+            processed = #{processed},
+            error_message = #{errorMessage},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+
+

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.SimExecutionLogMapper">
+
+    <insert id="insert" parameterType="com.eduai.pojo.entity.SimExecutionLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sim_execution_logs (
+            execution_id, workspace_id, workflow_id, workflow_name,
+            trigger_type, status, level, duration_ms,
+            cost_usd, model,
+            input_tokens, output_tokens, total_tokens,
+            start_time, end_time,
+            error_message, trace_spans, final_output, input_data, metadata,
+            synced_at, created_at, updated_at
+        ) VALUES (
+            #{executionId}, #{workspaceId}, #{workflowId}, #{workflowName},
+            #{triggerType}, #{status}, #{level}, #{durationMs},
+            #{costUsd}, #{model},
+            #{inputTokens}, #{outputTokens}, #{totalTokens},
+            #{startTime}, #{endTime},
+            #{errorMessage}, #{traceSpans}, #{finalOutput}, #{inputData}, #{metadata},
+            #{syncedAt}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+</mapper>
+
+

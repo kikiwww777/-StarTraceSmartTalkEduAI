@@ -1,0 +1,727 @@
+﻿星溯智语EduAI智能体教育平台
+
+执行概要
+本文档为一套基于开源系统Sim Studio(https://github.com/simstudioai/sim)的二次开发设计方案，目标是构建面向高等教育的AI智能体工作台。通过充分利用Sim的核心能力，用最短的开发周期在Phase 1完成一个即插即用、立即可用的教学平台，后续Phase 2和3用于功能扩展和深度集成。
+核心策略: - 不修改Sim核心代码 - 基于Sim的标准扩展机制和API - 优先构建教学层 - 模板库、课程管理、权限分离 - 充分复用基础设施 - 工作流编排、模型调用、MCP工具、向量数据库 - 快速迭代 - Phase 1聚焦必要功能，后续持续演进
+________________________________________
+第一部分：架构设计与分层
+1.1 整体架构图
+┌─────────────────────────────────────────────────────────────┐
+│          高校AI智能体教育平台（EduAI Studio）                │
+├─────────────────────────────────────────────────────────────┤
+│                   用户交互层（增强版Sim UI）                 │
+├─────────────────────────────────────────────────────────────┤
+│   教学管理模块        │      教学模板库        │  评估与监控   │
+│  (课程、权限、配额)  │   (11个教育工作流)   │  (进度、成本) │
+├─────────────────────────────────────────────────────────────┤
+│              Sim Studio 核心平台（未修改）                   │
+│  - 工作流编排引擎  - 多模型支持  - MCP协议  - 向量数据库     │
+├─────────────────────────────────────────────────────────────┤
+│              基础设施层（LLM、数据库、存储）                 │
+└─────────────────────────────────────────────────────────────┘
+1.2 分层职责
+用户交互层（改进Sim的前端）
+•	课程和班级管理界面
+•	教师工作区与学生工作区分离
+•	教学模板快速启动
+•	学习进度仪表板
+•	Token成本和配额显示
+教学管理模块（新增独立服务）
+•	课程与班级创建、权限管理
+•	学生/教师/管理员角色系统
+•	Token配额与成本审计
+•	作业发布与提交管理
+•	学习进度追踪与报告
+教学模板库（预制工作流集合）
+•	11个教育场景的参考实现
+•	每个模板包含：使用说明、节点讲解、改造建议
+•	支持教师发布自定义模板
+•	模板版本管理与推荐
+评估与监控模块（学习分析）
+•	工作流执行成本统计
+•	学生学习行为分析
+•	智能体性能基准
+•	错误报告与诊断
+Sim核心平台（保持不变）
+•	可视化工作流编排
+•	多模型调用与抽象
+•	MCP工具管理
+•	向量数据库与RAG支持
+•	实时协作与WebSocket通信
+•	工作流执行引擎
+________________________________________
+第二部分：Phase 1 开发方案（最小可用系统）
+2.1 Phase 1 目标
+目标: 在2-3个月内交付一个教学可用的系统，支持以下核心场景:
+1.	教师创建课程并发布模板式工作流
+2.	学生基于模板构建和运行智能体
+3.	系统追踪成本与配额，防止成本超支
+4.	支持多个LLM提供商的灵活选择
+5.	提供知识库上传与检索能力
+不包括（后续Phase）: - 多智能体间的复杂协作框架 - 自然语言建模（自动生成工作流） - 高级评估与优化建议 - 深度LMS集成
+2.2 Phase 1 核心模块
+模块A: 课程与权限管理
+功能: - 教师创建课程，学生注册加入 - 角色系统：管理员、教师、学生 - 课程级权限：允许使用的模型、工具、外部API - 工作区隔离：每个课程一个独立的工作空间
+实现方式: - 在Sim的现有工作区（workspace）概念基础上扩展 - 添加课程表、学生名单等关系表 - 权限中间件拦截Sim API调用，检查用户权限
+输出: - 后端API: /api/course/* (创建、列表、成员管理) - 前端：课程选择器、班级成员列表
+模块B: 教学模板库
+11个教育模板的参考实现（基于Sim的标准工作流格式）:
+1.	文献综述生成 - 输入主题 → 自动爬虫+LLM → 生成综述
+2.	课程学习助手 - 输入知识点 → 检索课程资料 → 讲解+例题
+3.	知识图谱可视化 - 输入内容 → 抽取关键概念 → 生成图谱
+4.	课件自动生成 - 输入大纲 → 分段讲义 → PPT脚本
+5.	作业自动批改 - 输入学生作业 → 内容评分 → 生成反馈
+6.	学术趋势分析 - 检索文献 → 趋势抽取 → 预测方向
+7.	学习路径推荐 - 用户档案 → 推荐课程 → 进度计划
+8.	协同写作与讨论 - 多人工作流 → 写作 → 实时反馈
+9.	抄袭检测 - 输入文本 → 相似度对比 → 报告
+10.	实验设计辅助 - 学科需求 → 实验框架 → 数据分析工具
+11.	学术写作优化 - 论文输入 → 语法和风格检查 → 改进建议
+实现方式: - 每个模板是一个导出的Sim工作流JSON文件 - 包含完整的节点配置、连线、提示词 - 教师可通过”导入模板”一键加载 - 学生基于模板创建个人副本，修改参数后运行
+特点: - 模板自带使用文档（嵌入为节点的备注） - 模板自带改造指南（推荐修改点标注） - 支持版本管理（允许教师发布改进的版本）
+存储形式:
+templates/
+├── 01_literature_survey.json
+├── 02_course_tutor.json
+├── 03_knowledge_graph.json
+├── 04_auto_ppt.json
+├── 05_homework_grading.json
+├── 06_trend_analysis.json
+├── 07_learning_path.json
+├── 08_collaborative_writing.json
+├── 09_plagiarism_check.json
+├── 10_experiment_design.json
+├── 11_writing_optimization.json
+└── README.md (模板目录说明)
+模块C: 成本与配额管理
+功能: - 为每个学生设置每日/每周Token配额 - 实时监控每个工作流执行的成本 - 超配额时警告或限制 - 教师可查看全班总成本与分布
+实现方式: - 在Sim的执行日志表中添加cost_tokens字段 - 新增quota表：记录课程级和学生级配额 - 执行前检查：若预估成本超配额，弹出确认或阻止 - 后端中间件拦截LLM调用，计算并累加成本
+UI集成: - 工作流执行页面：显示”预估成本: 5000 tokens / 剩余配额: 50000” - 学生仪表板：每日成本柱状图、剩余配额进度条 - 教师报告：班级成本TOP 10学生、课程总消耗
+模块D: 知识库管理
+功能: - 教师上传课程讲义、教材、论文等资料 - 系统自动分段、嵌入、索引到向量数据库 - 学生在工作流中使用”知识检索”节点查询相关资料 - 支持多个独立的知识库（按课程/专题隔离）
+实现方式: - 复用Sim的pgvector集成（已内置） - 新增knowledge_base和knowledge_doc表 - 文件上传处理：PDF/Word/Markdown → 分段 → embedding → 存储 - 提供/api/knowledge-base/search端点供工作流节点调用
+存储策略: - 向量表：knowledge_embeddings (doc_id, embedding, content_chunk) - 元数据表：knowledge_docs (id, kb_id, filename, upload_date, creator_id)
+模块E: 前端UI增强
+增强内容（不修改Sim核心编辑器）:
+1.	左侧边栏新增：
+o	“课程选择”下拉框
+o	“模板库”快速访问
+o	“我的配额”实时显示
+2.	新增页面：
+o	/courses - 课程列表与管理
+o	/templates - 模板库浏览与导入
+o	/dashboard - 学生学习成果板
+o	/reports - 教师班级报告
+3.	工作流执行页面增强：
+o	显示实时成本累计
+o	显示剩余配额
+o	节点执行时间和token消耗详情
+2.3 Phase 1 数据库设计（新增表）
+-- 课程管理
+CREATE TABLE courses (
+  id UUID PRIMARY KEY,
+  name VARCHAR(255),
+  description TEXT,
+  instructor_id UUID REFERENCES users(id),
+  workspace_id UUID REFERENCES workspaces(id),  -- Sim原有
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+CREATE TABLE course_members (
+  id UUID PRIMARY KEY,
+  course_id UUID REFERENCES courses(id),
+  user_id UUID REFERENCES users(id),
+  role ENUM('teacher', 'student'),  -- Sim有users，扩展角色
+  created_at TIMESTAMP
+);
+
+-- 配额与成本
+CREATE TABLE quota_settings (
+  id UUID PRIMARY KEY,
+  course_id UUID REFERENCES courses(id),
+  token_limit_daily INT,
+  token_limit_weekly INT,
+  created_at TIMESTAMP
+);
+
+CREATE TABLE user_quota_usage (
+  id UUID PRIMARY KEY,
+  course_id UUID REFERENCES courses(id),
+  user_id UUID REFERENCES users(id),
+  date DATE,
+  tokens_used INT,
+  workflow_count INT,
+  updated_at TIMESTAMP
+);
+
+CREATE TABLE execution_costs (
+  id UUID PRIMARY KEY,
+  workflow_id UUID REFERENCES workflows(id),  -- Sim原有
+  execution_id UUID,
+  user_id UUID REFERENCES users(id),
+  input_tokens INT,
+  output_tokens INT,
+  total_tokens INT,
+  cost_usd DECIMAL(10, 4),
+  model_used VARCHAR(255),
+  created_at TIMESTAMP
+);
+
+-- 知识库
+CREATE TABLE knowledge_bases (
+  id UUID PRIMARY KEY,
+  course_id UUID REFERENCES courses(id),
+  name VARCHAR(255),
+  description TEXT,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP
+);
+
+CREATE TABLE knowledge_documents (
+  id UUID PRIMARY KEY,
+  kb_id UUID REFERENCES knowledge_bases(id),
+  filename VARCHAR(255),
+  content_type VARCHAR(50),
+  file_path VARCHAR(512),
+  total_chunks INT,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP
+);
+
+CREATE TABLE knowledge_embeddings (
+  id UUID PRIMARY KEY,
+  doc_id UUID REFERENCES knowledge_documents(id),
+  chunk_index INT,
+  content TEXT,
+  embedding vector(1536),  -- pgvector支持
+  metadata JSONB
+);
+
+-- 模板管理
+CREATE TABLE templates (
+  id UUID PRIMARY KEY,
+  name VARCHAR(255),
+  description TEXT,
+  category ENUM('tutor', 'grading', 'writing', ...),
+  workflow_json JSONB,  -- 完整的Sim工作流定义
+  version INT,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP
+);
+
+CREATE TABLE template_usage (
+  id UUID PRIMARY KEY,
+  template_id UUID REFERENCES templates(id),
+  user_id UUID REFERENCES users(id),
+  course_id UUID REFERENCES courses(id),
+  used_at TIMESTAMP
+);
+2.4 Phase 1 API列表
+课程管理: - POST /api/courses - 教师创建课程 - GET /api/courses - 列出用户相关的课程 - GET /api/courses/:id - 课程详情 - POST /api/courses/:id/members - 添加学生 - GET /api/courses/:id/members - 列出成员
+模板管理: - GET /api/templates - 列表（支持过滤） - POST /api/templates/:id/import - 导入到当前课程 - GET /api/templates/:id - 模板详情
+配额与成本: - GET /api/courses/:id/quota - 获取课程配额设置 - POST /api/courses/:id/quota - 设置配额（教师） - GET /api/users/me/quota-usage - 个人配额使用情况 - GET /api/courses/:id/cost-report - 班级成本报告（教师）
+知识库: - POST /api/knowledge-bases - 创建知识库 - POST /api/knowledge-bases/:id/upload - 上传文档 - GET /api/knowledge-bases/:id/search?q=... - 语义搜索 - GET /api/knowledge-bases - 列表
+2.5 Phase 1 开发工作量估算
+模块	工作量	周期
+课程与权限管理	中等	2-3周
+模板库与导入	小型	1-2周
+成本审计系统	中等	2-3周
+知识库集成	中等	2-3周
+前端UI增强	中等	2-3周
+测试与部署	小型	1-2周
+总计	中等规模	10-16周
+建议: 按功能优先级分批发布 1. 第1.1版 (第4周): 课程管理 + 基本权限 → 教师可创建课程 2. 第1.2版 (第8周): 模板库 + 导入 → 学生可用模板学习 3. 第1.3版 (第12周): 成本审计 + 配额管理 → 资源管理到位 4. 第1.4版 (第16周): 知识库 + 全面测试 → 完整Phase 1
+________________________________________
+第三部分：教学模板详细设计
+3.1 模板通用结构
+每个模板遵循以下JSON结构（Sim标准工作流格式）:
+{
+  "id": "template_001",
+  "name": "课程学习助手",
+  "category": "tutor",
+  "version": "1.0",
+  "description": "帮助学生学习课程知识点，包含讲解与例题",
+  "author": "AI Studio Team",
+  "tags": ["教学", "学习辅导", "RAG"],
+  "difficulty": "beginner",
+  "estimatedCost": "~5000 tokens",
+  "nodes": [ /* Sim节点定义 */ ],
+  "edges": [ /* 节点连线 */ ],
+  "documentation": {
+    "usage": "...",
+    "keyPoints": [...],
+    "modifications": [...]
+  }
+}
+3.2 11个模板详细规格
+模板1: 课程学习助手 ⭐ (重点模块)
+场景: 学生输入知识点名称 → 系统讲解 + 提供例题 + 互动提问
+工作流节点结构:
+[输入: 知识点名称]
+    ↓
+[检索课程知识库 (RAG)]
+    ↓
+[生成讲解 (LLM: gpt-4)]
+    ↓
+[生成例题 (LLM: gpt-3.5-turbo, 成本优化)]
+    ↓
+[输出: 讲解 + 例题]
+关键配置: - 知识库检索：top-k=5，相似度阈值=0.7 - LLM提示词：包含Socratic方法论，鼓励学生思考 - 支持多轮对话（学生可继续追问） - 成本估算：~3000-5000 tokens/次
+预设改造方向: - 添加”难度调整”（简单/中等/困难） - 添加”语言切换”（中英文） - 集成”评分”（学生对讲解的满意度）
+________________________________________
+模板2: 文献综述生成
+场景: 输入研究主题 → 搜索相关文献 → 生成综述文章
+工作流节点结构:
+[输入: 研究主题]
+    ↓
+[网页搜索 (Google Search / Perplexity)]
+    ↓
+[并行处理多篇文献]
+    ├─ [LLM提取摘要与关键点]
+    ├─ [LLM提取主要发现]
+    └─ [LLM提取研究空白]
+    ↓
+[汇聚: 综合分析]
+    ↓
+[LLM生成结构化综述]
+    ↓
+[输出: Markdown格式综述]
+关键配置: - 搜索数量：默认10篇，可调整 - 文献处理：支持PDF解析（通过MCP） - LLM模型：使用更强的模型（claude-3或gpt-4） - 输出格式：背景、发展阶段、主要成果、研究空白、未来方向
+成本: - 搜索：~5000 tokens - 总体：~20000-30000 tokens
+________________________________________
+模板3: 知识图谱构建
+场景: 上传课程资料 → 自动提取概念与关系 → 可视化图谱
+工作流节点结构:
+[输入: 文本内容]
+    ↓
+[文本预处理与分段]
+    ↓
+[关键概念抽取 (LLM)]
+    ↓
+[关系抽取 (LLM 或 NLP工具)]
+    ↓
+[图构建 (Neo4j或内存JSON)]
+    ↓
+[图可视化输出 (DOT / Mermaid格式)]
+关键配置: - 概念类型：定义、原理、公式、定理等 - 关系类型：先决条件、相关概念、例子、反例等 - 可视化工具：Mermaid (内嵌HTML)
+成本: - 小规模（1个章节）：~2000-3000 tokens
+________________________________________
+模板4: 自动课件生成
+场景: 输入课程大纲 → 自动生成讲义大纲、PPT脚本、录屏指南
+工作流节点结构:
+[输入: 课程大纲 + 教材参考]
+    ↓
+[按章节分解]
+    ↓
+[并行处理每个章节]
+    ├─ [生成讲义内容]
+    ├─ [生成PPT脚本]
+    ├─ [生成课后习题]
+    └─ [生成关键词]
+    ↓
+[汇聚: 整理成结构化文档]
+    ↓
+[输出: Markdown讲义 + JSON PPT配置]
+关键配置: - 讲义风格：教科书式、博客式、学术式（可选） - PPT要素：标题、正文、图表、总结、引用 - 自动搜索图片：集成图像搜索API（可选）
+成本: - 单章节：~5000-8000 tokens
+________________________________________
+模板5: 智能作业批改与反馈
+场景: 学生提交作业（论文/代码/问答）→ 自动评分与个性化反馈
+工作流节点结构:
+[输入: 学生作业 + 评分标准]
+    ↓
+[作业类型识别]
+    ├─ [论文批改流程]
+    │  ├─ 结构检查
+    │  ├─ 内容分析
+    │  ├─ 语言质量
+    │  └─ 学术规范
+    ├─ [代码批改流程]
+    │  ├─ 语法检查
+    │  ├─ 逻辑分析
+    │  └─ 性能评估
+    └─ [问答评分流程]
+       ├─ 完整性检查
+       ├─ 准确性判断
+       └─ 深度分析
+    ↓
+[综合评分 (LLM)]
+    ↓
+[生成个性化反馈建议]
+    ↓
+[输出: 评分 + 反馈报告 + 改进建议]
+关键配置: - 评分标准：教师上传的rubric (JSON格式) - 反馈类型：强项、改进点、具体建议、参考资源 - 支持抄袭检测：集成Turnitin API（可选）或本地检查
+成本: - 短作业（<500词）：~2000 tokens - 长论文（2000-5000词）：~5000-10000 tokens
+________________________________________
+模板6: 学术趋势预测
+场景: 输入学科领域 → 分析近期研究热点 → 预测发展方向
+工作流节点结构:
+[输入: 学科领域]
+    ↓
+[检索最近3年论文（Google Scholar / ArXiv）]
+    ↓
+[并行分析]
+    ├─ [热点话题识别]
+    ├─ [方法论趋势]
+    ├─ [学者影响力分析]
+    └─ [引用关系分析]
+    ↓
+[LLM综合分析与预测]
+    ↓
+[输出: 趋势报告 + 机会分析 + 风险预警]
+关键配置: - 数据源：Google Scholar、ArXiv、CrossRef - 时间范围：可调整（默认最近3年） - 预测模型：基于趋势外推和LLM推理
+成本: - 文献检索：~10000-20000 tokens - 总体：~25000-40000 tokens
+________________________________________
+模板7: 个性化学习路径推荐
+场景: 学生输入目标 + 已学知识 → 生成定制化学习计划
+工作流节点结构:
+[输入: 学生目标 + 已学课程 + 学习风格]
+    ↓
+[学生档案分析]
+    ├─ 知识水平评估
+    ├─ 学习速度推断
+    └─ 兴趣偏好识别
+    ↓
+[课程匹配]
+    ├─ 从课程知识库检索相关课程
+    ├─ 计算前置条件满足度
+    └─ 排序与推荐
+    ↓
+[生成学习计划]
+    ├─ 优化学习顺序
+    ├─ 估算完成时间
+    └─ 推荐学习资源
+    ↓
+[输出: 学习计划表 + 周期提醒 + 动态调整建议]
+关键配置: - 推荐算法：协同过滤 + 基于内容 - 学习路径：线性、分支式、非线性（可选） - 反馈机制：每周检查进度，动态调整建议
+成本: - 初始推荐：~3000-5000 tokens - 每周更新：~1000-2000 tokens
+________________________________________
+模板8: 协同创作与讨论
+场景: 多个学生共同撰写报告/综述 → 实时协作 → 集中反馈
+工作流节点结构:
+[初始化多人编辑环境]
+    ↓
+[每次编辑触发]
+    ├─ 版本保存
+    ├─ 变更提取
+    └─ LLM实时反馈（可选）
+    ↓
+[定期汇总]
+    ├─ 检查一致性
+    ├─ 合并冲突
+    └─ 生成讨论纪要
+    ↓
+[最终审稿]
+    ├─ 风格统一
+    ├─ 完整性检查
+    └─ 学术规范检查
+    ↓
+[输出: 最终文档 + 版本历史 + 贡献统计]
+关键配置: - 协作工具：Google Docs + Sim工作流 或 Notion API集成 - 权限管理：编辑权限与评论权限分离 - 讨论追踪：绑定工作流执行，显示贡献者和改动历史
+成本: - 低成本，主要在汇总和检查阶段（~2000-3000 tokens）
+________________________________________
+模板9: 学术道德与抄袭检测
+场景: 学生提交论文 → 自动检测抄袭与引用不当 → 生成合规报告
+工作流节点结构:
+[输入: 论文全文]
+    ↓
+[分段处理]
+    ├─ [段落去重：与课程知识库对比]
+    ├─ [网络检测：与公开资源对比（Turnitin/本地检查）]
+    ├─ [引用格式检查]
+    └─ [释义相似度检查]
+    ↓
+[汇聚分析]
+    ├─ 计算总体相似度评分
+    ├─ 识别风险段落
+    └─ 分类：引用、释义、抄袭
+    ↓
+[LLM生成改进建议]
+    ↓
+[输出: 相似度报告 + 详细分析 + 改进指南]
+关键配置: - 检测严格度：宽松/标准/严格（阈值可调） - 引用格式：APA/MLA/Chicago等 - 知识库范围：可选全网检测（付费）或仅课程资源
+成本: - 本地检测：~1000-2000 tokens - 网络检测（可选）：更高
+________________________________________
+模板10: 实验设计与模拟
+场景: 学生输入实验假设 → LLM协助设计 → 提供模拟数据或分析工具
+工作流节点结构:
+[输入: 学科 + 研究假设 + 约束条件]
+    ↓
+[LLM生成实验设计]
+    ├─ 实验变量定义
+    ├─ 控制变量列表
+    ├─ 实验步骤
+    └─ 风险评估
+    ↓
+[模拟与分析]
+    ├─ [生成模拟数据（基于统计模型）]
+    ├─ [执行基本统计分析]
+    └─ [生成结果解释]
+    ↓
+[提供改进建议]
+    ├─ 样本量调整
+    ├─ 方法优化
+    └─ 可替代设计
+    ↓
+[输出: 实验设计报告 + 模拟数据 + 分析结果]
+关键配置: - 学科库：物理、化学、生物、社会科学等 - 模拟工具：集成Python/R执行环境（可选） - 数据生成：基于分布参数和统计模型
+成本: - 设计 + 初步模拟：~3000-5000 tokens
+________________________________________
+模板11: 学术写作优化
+场景: 学生输入初稿 → LLM检查语法、逻辑、风格 → 生成改进建议
+工作流节点结构:
+[输入: 论文初稿]
+    ↓
+[多维度检查]
+    ├─ [语法和拼写检查]
+    ├─ [逻辑清晰度分析]
+    ├─ [论证强度评估]
+    ├─ [文献引用规范检查]
+    └─ [风格与语气分析]
+    ↓
+[针对性优化]
+    ├─ [改写建议（保留原意）]
+    ├─ [结构优化（逻辑流）]
+    └─ [表达强化（学术规范）]
+    ↓
+[汇聚改进报告]
+    ↓
+[输出: 标注版本 + 改进清单 + 学习资源]
+关键配置: - 写作风格：英文学术、中文学术、商务报告等（可选） - 检查深度：快速检查 vs. 深度分析 - 输出形式：Word文档（Track Changes）或Markdown标注
+成本: - ~2000-3000 tokens/1000词
+________________________________________
+3.3 模板库管理系统
+功能: 1. 模板浏览: 可按分类、难度、成本筛选 2. 模板导入: 教师或学生可导入模板创建工作流副本 3. 版本控制: 支持模板更新，追踪版本历史 4. 使用统计: 记录每个模板的使用次数和学生反馈 5. 社区共享: 教师可发布自定义模板供他人使用（可选Phase 2）
+实现: - 前端页面：/templates (搜索、浏览、导入) - 后端API：模板CRUD、搜索、版本管理
+________________________________________
+第四部分：技术实现细节
+4.1 与Sim的集成方式
+方式A: API扩展（推荐）
+•	在Sim后端添加新的API路由（不修改现有）
+•	教学模块作为独立微服务或同进程服务
+•	通过Sim的API调用底层功能（获取工作流、提交执行等）
+方式B: 数据库扩展
+•	在Sim的PostgreSQL中添加新表（如上述表设计）
+•	共享用户、工作流等核心表
+•	权限检查在中间件层实现
+方式C: 前端插件
+•	开发Sim的前端插件/扩展
+•	利用Sim的React组件库和API
+•	不修改Sim核心UI代码
+最佳实践: - 采用方式A + B的组合 - 保持Sim核心代码清晰，所有教学功能在上层 - 使用清晰的命名空间隔离（如/api/edu/*）
+4.2 工作流执行的成本计算
+伪代码:
+def calculate_execution_cost(workflow_execution):
+    total_cost = 0
+    
+    for node in workflow_execution.nodes:
+        if node.type == "llm":
+            # 从LLM调用日志获取token数
+            input_tokens = node.metadata.input_tokens
+            output_tokens = node.metadata.output_tokens
+            model = node.config.model
+            
+            # 查询模型的token价格表
+            price = get_model_price(model)
+            node_cost = (input_tokens * price.input + 
+                        output_tokens * price.output)
+            total_cost += node_cost
+            
+        elif node.type == "api_call":
+            # API调用根据类型计费（如搜索、检索）
+            if node.config.service == "web_search":
+                total_cost += 0.05  # 每次搜索$0.05
+            elif node.config.service == "embedding":
+                total_cost += (node.metadata.vector_count * 0.0001)
+    
+    return total_cost
+令牌价格表 (2026年参考):
+{
+  "gpt-4-turbo": { "input": 0.00003, "output": 0.0001 },
+  "gpt-3.5-turbo": { "input": 0.0000015, "output": 0.000002 },
+  "claude-3-opus": { "input": 0.000015, "output": 0.000075 },
+  "llama-70b": { "input": 0.000005, "output": 0.000008 }
+}
+4.3 知识库的检索与增强
+RAG流程:
+1. 用户查询: "什么是机器学习？"
+2. 生成embedding: query_emb = embed("什么是机器学习？")
+3. 向量搜索: results = search_similar(query_emb, kb_embeddings, top_k=5)
+4. 拼装上下文: context = "\n".join([r.content for r in results])
+5. LLM回答: response = llm(prompt + context + query)
+Sim中的集成: - 在工作流中添加”知识库检索”节点 - 节点配置: 知识库ID、top-k、相似度阈值 - 输出: 相关文段列表 (id, content, similarity_score)
+4.4 权限与多租户隔离
+权限检查中间件:
+// Express中间件示例
+async function checkCoursePermission(req, res, next) {
+  const courseId = req.params.courseId;
+  const userId = req.user.id;
+  
+  const member = await db.course_members.findOne({
+    course_id: courseId,
+    user_id: userId
+  });
+  
+  if (!member) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  
+  // 根据角色设置权限
+  if (member.role === 'student') {
+    req.permissions = ['view', 'create_workflow', 'use_templates'];
+  } else if (member.role === 'teacher') {
+    req.permissions = ['view', 'edit_course', 'publish_template', 'view_reports'];
+  }
+  
+  next();
+}
+数据隔离: - 学生只能访问自己的工作流和所在课程的资源 - 教师可以访问班级内的所有资源和报告 - 每个课程在Sim中对应一个workspace_id
+________________________________________
+第五部分：Phase 2 演进计划（第4-6个月）
+5.1 高阶智能体支持
+目标: 支持多智能体协作与复杂编排模式
+内容: - 智能体节点的完整实现（当前Sim将节点分组视为智能体） - 智能体间通信与消息传递可视化 - 多种编排模式库（层级、网状、链式、并行聚合） - 智能体状态与记忆管理
+5.2 自然语言建模
+目标: 学生用自然语言描述工作流，系统自动生成初稿
+技术方案: - 后端LLM分析用户描述 - 利用Prompt Engineering生成工作流JSON - 前端解析JSON并渲染画布 - 用户在画布上微调
+示例工作流:
+用户输入: "我想做一个智能体，接收学生的编程作业，检查代码质量，
+给出评分和改进建议"
+
+系统生成:
+{
+  "nodes": [
+    { "id": "input", "type": "input", "label": "学生代码" },
+    { "id": "check_syntax", "type": "code_check", ... },
+    { "id": "evaluate_quality", "type": "llm", ... },
+    { "id": "generate_feedback", "type": "llm", ... },
+    { "id": "output", "type": "output", "label": "评分与反馈" }
+  ],
+  "edges": [...]
+}
+5.3 深度LMS集成
+目标: 与主流高校学习管理系统（Canvas, Blackboard, 超星等）无缝集成
+内容: - LMS API集成驱动（LTI 1.3标准） - 自动同步课程信息、学生名单 - 工作流作为作业类型出现在LMS中 - 成绩自动回传到LMS
+5.4 垂直模板库扩展
+目标: 针对特定学科的深度模板
+内容: - 法律案例分析模板 - 医学诊断辅助模板 - 工程设计助手模板 - 财务分析与决策支持模板 - 等等（可邀请学科专家共同设计）
+________________________________________
+第六部分：Phase 3 远景规划（第7-12个月）
+6.1 企业级功能
+•	高级权限与数据治理
+•	审计日志与合规性报告
+•	成本优化与预算控制建议
+•	性能监控与调优
+6.2 学术生态整合
+•	论文发表流程（投稿 → 审稿 → 修改 → 发布）
+•	学术评审工作流
+•	研究数据管理平台对接
+•	开放科学支持
+6.3 AI研究与创新
+•	新型LLM模型的教学集成
+•	多模态模型支持（视频、语音）
+•	强化学习在决策问题中的应用
+•	AI伦理与偏差检测工具
+________________________________________
+第七部分：部署与运维
+7.1 推荐部署架构
+┌─────────────────────────────────────┐
+│  Nginx/CloudFront (反向代理)         │
+└────────────────┬────────────────────┘
+                 │
+    ┌────────────┴────────────┐
+    │                         │
+┌───▼───────────┐  ┌────────▼──────────┐
+│ Next.js前端   │  │ Node.js后端       │
+│ (Docker)      │  │ (Docker)          │
+└───────────────┘  └────────┬──────────┘
+                            │
+        ┌───────────────────┼──────────────┬──────────────┐
+        │                   │              │              │
+   ┌────▼─────┐  ┌─────────▼────┐  ┌────▼──────┐  ┌───▼──────┐
+   │PostgreSQL │  │  Redis缓存   │  │ S3存储    │  │ Milvus   │
+   │ (pgvector)│  │ (会话+队列)   │  │ (文件)    │  │(向量DB)  │
+   └──────────┘  └──────────────┘  └───────────┘  └──────────┘
+推荐: - Kubernetes自动编排（可选） - Docker Compose用于小规模部署 - CI/CD管道：GitHub Actions自动测试与部署
+7.2 监控与告警
+关键指标: - 工作流执行成功率 - 平均执行时间 - Token消耗趋势 - 系统可用性
+工具: Prometheus + Grafana
+7.3 安全与合规
+•	数据加密: TLS传输 + 数据库字段级加密
+•	认证: JWT + OAuth 2.0
+•	审计: 完整日志记录，所有API调用可追溯
+•	隐私: GDPR合规，提供数据导出与删除功能
+
+第八部分：成功指标与评估
+8.1 Phase 1 验收标准
+功能完整性: - ✅ 教师可创建课程与管理学生 - ✅ 学生可使用至少5个预设模板 - ✅ 成本审计系统正常工作 - ✅ 知识库上传与检索功能完整
+性能指标: - 工作流执行成功率 ≥ 95% - 平均执行时间 < 30秒 - 系统可用性 ≥ 99%
+用户体验: - 新用户上手时间 < 15分钟 - 系统易用性评分 ≥ 4.0/5.0 - 用户满意度 ≥ 80%
+8.2 关键业务指标
+•	日活用户数（DAU）
+•	周活用户数（WAU）
+•	平均工作流执行次数/用户/周
+•	Token消耗趋势
+•	成本效率比（成本/学生数）
+•	教师模板发布数
+________________________________________
+第九部分：推荐技术栈（完整版）
+层级	技术	说明
+前端	Next.js 14	App Router, 服务端渲染优化
+	React 18	组件库
+	React Flow	工作流画布
+	Shadcn/UI	组件库
+	Zustand	状态管理
+	TailwindCSS	样式
+后端	Node.js + Bun	高性能运行时
+	Express / Fastify	Web框架
+	TypeScript	类型安全
+	Drizzle ORM	数据库交互
+数据库	PostgreSQL	关系数据 + pgvector
+	Redis	缓存 + 队列
+	Milvus/Weaviate	向量数据库（可选）
+LLM & 工具	OpenAI / Anthropic / Groq	LLM提供商
+	Ollama / vLLM	本地模型（可选）
+	MCP	工具协议
+部署	Docker	容器化
+	Kubernetes	编排（可选）
+	Docker Compose	开发部署
+监控	Prometheus	指标收集
+	Grafana	可视化
+	ELK Stack	日志分析
+________________________________________
+第十部分：与Sim的关键集成点
+10.1 利用Sim的现有功能
+Sim功能	教学应用
+工作流编排引擎	所有11个教学模板的基础
+多模型支持	灵活选择模型，平衡成本与质量
+MCP工具集成	教师可自定义工具（如代码执行、数据查询）
+pgvector RAG	知识库与语义搜索
+实时协作	支持多学生同时编辑工作流（Phase 2）
+API + WebSocket	实时执行监控与成本显示
+工作流导入/导出	模板分发与学生副本创建
+10.2 扩展Sim的地方
+功能	扩展方式
+课程与权限	新的数据表 + API + 中间件
+配额与成本	执行日志扩展 + 新API
+教学模板库	预制工作流集合 + UI浏览
+学习进度	新的分析API + 仪表板
+教师报告	新的聚合查询 + 导出功能
+10.3 避免修改Sim核心
+原则: - ❌ 不修改Sim的前端编辑器 - ❌ 不修改Sim的工作流执行引擎 - ❌ 不修改Sim的模型调用逻辑 - ✅ 在其上层构建教学功能 - ✅ 通过API和数据库扩展 - ✅ 通过UI插件增强前端
+
+结论与建议
+总结
+本设计方案基于对Sim Studio的深入分析和高校教学需求，提出了一个： - 快速可用 (Phase 1: 16周) - 充分复用 (利用Sim的核心能力) - 可持续演进 (Phase 2/3清晰规划) - 成本合理 (基于现有开源系统)
+的教学平台构建方案。
+推荐后续步骤
+1.	第1-2周: 与Sim团队沟通，确认扩展点与兼容性
+2.	第2-4周: 原型开发与设计细化
+3.	第4-8周: 教学模板库和核心功能开发
+4.	第8-16周: 集成测试、文档、与试点校联调
+5.	第16周: Phase 1发布、收集反馈
+建议
+•	✅ 优先做: 课程管理 + 5个核心模板 + 成本审计
+•	⏭️ 后续做: 自然语言建模 + 多智能体 + LMS集成
+•	🤝 与Sim合作: 考虑向Sim贡献教学相关功能，成为官方的教学扩展

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.TemplateCategoryMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.TemplateCategory">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="label" property="label" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, label, created_at, updated_at
+    </sql>
+    
+    <!-- 根据ID查询分类 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates_category
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 查询所有分类 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates_category
+        ORDER BY id ASC
+    </select>
+    
+    <!-- 插入新分类 -->
+    <insert id="insert" parameterType="com.eduai.pojo.entity.TemplateCategory">
+        INSERT INTO templates_category (
+            id, label, created_at, updated_at
+        ) VALUES (
+            #{id}, #{label}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 更新分类信息 -->
+    <update id="update" parameterType="com.eduai.pojo.entity.TemplateCategory">
+        UPDATE templates_category
+        <set>
+            <if test="label != null">label = #{label},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除分类 -->
+    <delete id="deleteById">
+        DELETE FROM templates_category
+        WHERE id = #{id}
+    </delete>
+    
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

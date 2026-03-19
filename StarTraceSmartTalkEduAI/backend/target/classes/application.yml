@@ -1,0 +1,95 @@
+﻿server:
+  port: 8080
+  servlet:
+    #cookie 30天过期
+    session:
+      cookie:
+        max-age: 2592000
+  # 连接超时配置（用于大文件上传）
+  connection-timeout: 300000
+spring:
+  main:
+    allow-circular-references: true
+  servlet:
+    multipart:
+      # 文件上传大小限制
+      max-file-size: 20MB
+      max-request-size: 20MB
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sim_studio?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1 FROM DUAL
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+mybatis:
+  #mapper位置
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.eduai.pojo.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com:
+      sky:
+        mapper: debug
+        service: info
+        controller: info
+
+# knife4j配置
+knife4j:
+  enable: true
+  openapi:
+    title: 出行必带项目接口文档
+    description: 出行必带项目接口文档
+    version: 2.0
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.eduai.Controller
+
+# 本地文件上传（课件/文章附件）
+sim:
+  upload:
+    # 建议使用相对路径，运行时会落在项目工作目录下
+    base-dir: ./uploads
+    material-dir: ${sim.upload.base-dir}/course-material
+  webhook:
+    secret: simstudio_webhook_secret_123456
+  postgres:
+    # Sim Studio Postgres（用于在无法配置/接收 Webhook 时，定时同步执行日志）
+    enabled: true
+    url: jdbc:postgresql://localhost:5432/simstudio
+    username: postgres
+    password: postgres
+
+  # Sim Studio 集成（internal-jwt / 工作流自动创建）
+  base-url: ${SIM_BASE_URL:http://localhost:3000}
+  public-url: ${SIM_PUBLIC_URL:${sim.base-url}}
+  internal:
+    # 必须与 Sim 的 INTERNAL_API_SECRET 完全一致（建议 ≥ 32 位随机字符串）
+    api-secret: ${SIM_INTERNAL_API_SECRET:}
+  external:
+    # 可选：Sim External API Key（用于 /api/workflows/{id}/execute 等允许 x-api-key 的接口）
+    api-key: ${SIM_API_KEY:sim_TGnlur5VgdA9sNEpHIsBcjFK87vjC-Sv}
+  defaults:
+    # 最小可跑通方案：使用 Sim 中的一个固定用户/工作区（UUID）
+    # 后续如需“EduAI 用户 ↔ Sim 用户”映射，可替换为 DB 映射表查询
+    sim-user-id: ${SIM_DEFAULT_USER_ID:}
+    sim-workspace-id: ${SIM_DEFAULT_WORKSPACE_ID:}

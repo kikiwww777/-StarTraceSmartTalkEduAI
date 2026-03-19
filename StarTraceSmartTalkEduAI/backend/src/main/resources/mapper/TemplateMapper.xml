@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.TemplateMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.Template">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="category" property="category" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="usage_count" property="usageCount" jdbcType="INTEGER"/>
+        <result column="rating" property="rating" jdbcType="DECIMAL"/>
+        <result column="color" property="color" jdbcType="VARCHAR"/>
+        <result column="icon" property="icon" jdbcType="LONGVARCHAR"/>
+        <result column="prompt" property="prompt" jdbcType="LONGVARCHAR"/>
+        <result column="workflow_id" property="workflowId" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, title, category, description, usage_count, rating, color, icon, prompt, workflow_id, created_at, updated_at
+    </sql>
+    
+    <!-- 根据ID查询模板 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据分类ID查询模板列表 -->
+    <select id="selectByCategory" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        WHERE category = #{category}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据关键词搜索模板（标题或描述） -->
+    <select id="selectByKeyword" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+           OR description LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据分类和关键词查询模板列表 -->
+    <select id="selectByCategoryAndKeyword" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        <where>
+            <if test="category != null and category != '' and category != 'all'">
+                AND category = #{category}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%')
+                     OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 查询所有模板 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 按评分降序查询模板 -->
+    <select id="selectByRatingDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        ORDER BY rating DESC, usage_count DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <!-- 按使用次数降序查询模板 -->
+    <select id="selectByUsageCountDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM templates
+        ORDER BY usage_count DESC, rating DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+    
+    <!-- 插入新模板 -->
+    <insert id="insert" parameterType="com.eduai.pojo.entity.Template">
+        INSERT INTO templates (
+            id, title, category, description, usage_count, rating, color, icon, prompt, workflow_id, created_at, updated_at
+        ) VALUES (
+            #{id}, #{title}, #{category}, #{description}, #{usageCount}, #{rating}, #{color}, #{icon}, #{prompt}, #{workflowId}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 更新模板信息 -->
+    <update id="update" parameterType="com.eduai.pojo.entity.Template">
+        UPDATE templates
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="usageCount != null">usage_count = #{usageCount},</if>
+            <if test="rating != null">rating = #{rating},</if>
+            <if test="color != null">color = #{color},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="workflowId != null">workflow_id = #{workflowId},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除模板 -->
+    <delete id="deleteById">
+        DELETE FROM templates
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 增加使用次数 -->
+    <update id="incrementUsageCount">
+        UPDATE templates
+        SET usage_count = usage_count + 1
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新评分 -->
+    <update id="updateRating">
+        UPDATE templates
+        SET rating = #{rating}
+        WHERE id = #{id}
+    </update>
+    
+</mapper>
+
+
+
+
+

@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eduai.Mapper.UserMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.eduai.pojo.entity.User">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="student_id" property="studentId" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="role" property="role" jdbcType="VARCHAR"/>
+        <result column="subject" property="subject" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="TINYINT"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, student_id, name, password, role, subject, email, phone, gender, avatar, status, created_at, updated_at
+    </sql>
+    
+    <!-- 根据学号查询用户 -->
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE student_id = #{studentId}
+    </select>
+    
+    <!-- 根据学号和密码查询用户 -->
+    <select id="selectByStudentIdAndPassword" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE student_id = #{studentId} AND password = #{password}
+    </select>
+    
+    <!-- 根据ID查询用户 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 插入新用户 -->
+    <insert id="insert" parameterType="com.eduai.pojo.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (
+            student_id, password, role, created_at, updated_at
+        ) VALUES (
+            #{studentId}, #{password}, #{role}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 根据角色查询用户列表 -->
+    <select id="selectByRole" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE role = #{role}
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 根据角色和学科查询用户列表 -->
+    <select id="selectByRoleAndSubject" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE role = #{role}
+        <if test="subject != null and subject != ''">
+            AND subject = #{subject}
+        </if>
+        ORDER BY id DESC
+    </select>
+    
+    <!-- 更新用户信息 -->
+    <update id="update" parameterType="com.eduai.pojo.entity.User">
+        UPDATE users
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="subject != null">subject = #{subject},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新密码 -->
+    <update id="updatePassword">
+        UPDATE users
+        SET password = #{password}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+</mapper>
+
+
+
+
