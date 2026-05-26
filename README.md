@@ -19,7 +19,21 @@
 
 ## 界面预览
 
-更多系统页面截图可放置在 `assets/screenshots/` 目录，并通过 Markdown 图片语法展示在这里。
+| 控制面板 | 课程详情 |
+| --- | --- |
+| ![控制面板](./assets/screenshots/dashboard-student.png) | ![课程详情](./assets/screenshots/course-detail.png) |
+
+| 教师班级页 | 学习模板工作流 |
+| --- | --- |
+| ![教师班级页](./assets/screenshots/dashboard-teacher.png) | ![学习模板工作流](./assets/screenshots/template-workflow.png) |
+
+| 模板导入 | 知识库管理 |
+| --- | --- |
+| ![模板导入](./assets/screenshots/template-import.png) | ![知识库管理](./assets/screenshots/template-empty.png) |
+
+| 创建课程组 | 教学报告 |
+| --- | --- |
+| ![创建课程组](./assets/screenshots/course-create-class.png) | ![教学报告](./assets/screenshots/reports.png) |
 
 ## 技术栈
 

@@ -45,4 +45,12 @@ npm run dev
 - Sim Studio 工作流执行、Webhook 与日志同步
 - 学生实验尝试、事件、产物与 token 使用统计
 
+## 界面预览
+
+| 控制面板 | 课程详情 |
+| --- | --- |
+| ![控制面板](../assets/screenshots/dashboard-student.png) | ![课程详情](../assets/screenshots/course-detail.png) |
+
+更多截图请查看仓库根目录 README。
+
 更多项目介绍、技术栈和配置说明请查看仓库根目录 README。
