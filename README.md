@@ -1,6 +1,6 @@
-# 项目介绍视频
+<video src="./assets/demo-github.mp4" controls width="100%"></video>
 
-[点击查看项目介绍视频](./assets/demo.mp4)
+[无法播放时，点击查看项目介绍视频](./assets/demo-github.mp4)
 
 # 星溯智语 EduAI
 

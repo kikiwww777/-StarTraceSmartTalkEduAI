@@ -1,6 +1,4 @@
-<div align="center">
-  <video src="../assets/demo.mp4" controls width="100%"></video>
-</div>
+<video src="../assets/demo-github.mp4" controls width="100%"></video>
 
 # 星溯智语 EduAI
 
