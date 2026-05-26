@@ -1,6 +1,6 @@
-<video src="./assets/demo-github.mp4" controls width="100%"></video>
+[![星溯智语 EduAI 项目演示](./assets/demo-preview.gif)](./assets/demo-github.mp4)
 
-[无法播放时，点击查看项目介绍视频](./assets/demo-github.mp4)
+点击上方动图可播放完整项目介绍视频。
 
 # 星溯智语 EduAI
 
@@ -16,6 +16,10 @@
 - Sim Studio 集成：对接 Sim 的工作流、执行日志、Webhook、Internal API 和实验运行记录。
 - 学习过程监控：记录学生实验尝试、事件、产物和 token 使用情况，为教学复盘提供依据。
 - 前后端分离架构：前端使用 Vue 3 + Vite + Element Plus，后端使用 Spring Boot + MyBatis + MySQL。
+
+## 界面预览
+
+更多系统页面截图可放置在 `assets/screenshots/` 目录，并通过 Markdown 图片语法展示在这里。
 
 ## 技术栈
 

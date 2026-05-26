@@ -1,4 +1,4 @@
-<video src="../assets/demo-github.mp4" controls width="100%"></video>
+[![星溯智语 EduAI 项目演示](../assets/demo-preview.gif)](../assets/demo-github.mp4)
 
 # 星溯智语 EduAI
 
